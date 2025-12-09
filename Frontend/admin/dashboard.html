@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HealthCare+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/admin/dashboard.html" class="text-2xl font-bold text-blue-600">HealthCare+ Admin</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin/dashboard.html" class="text-gray-700 hover:text-blue-600 font-semibold">Dashboard</a>
+                    <a href="/admin/add-doctor.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="/admin/bookings.html" class="text-gray-700 hover:text-blue-600">Bookings</a>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
+
+        <!-- Stats Cards -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Total Doctors</p>
+                        <p class="text-3xl font-bold text-blue-600" id="totalDoctors">0</p>
+                    </div>
+                    <div class="text-4xl">👨‍⚕️</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Total Appointments</p>
+                        <p class="text-3xl font-bold text-green-600" id="totalAppointments">0</p>
+                    </div>
+                    <div class="text-4xl">📅</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Today's Appointments</p>
+                        <p class="text-3xl font-bold text-purple-600" id="todayAppointments">0</p>
+                    </div>
+                    <div class="text-4xl">⏰</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Pending</p>
+                        <p class="text-3xl font-bold text-yellow-600" id="pendingAppointments">0</p>
+                    </div>
+                    <div class="text-4xl">⏳</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Appointments -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Recent Appointments</h2>
+                <a href="/admin/bookings.html" class="text-blue-600 hover:underline">View All</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Doctor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentAppointments" class="bg-white divide-y divide-gray-200">
+                        <!-- Will be populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid md:grid-cols-3 gap-6">
+            <a href="add-doctor.html" 
+               class="bg-blue-600 text-white p-6 rounded-lg shadow-md hover:bg-blue-700 text-center">
+                <div class="text-4xl mb-2">➕</div>
+                <h3 class="text-xl font-semibold">Add New Doctor</h3>
+            </a>
+
+            <a href="bookings.html" 
+               class="bg-green-600 text-white p-6 rounded-lg shadow-md hover:bg-green-700 text-center">
+                <div class="text-4xl mb-2">📊</div>
+                <h3 class="text-xl font-semibold">View All Bookings</h3>
+            </a>
+
+            <a href="add-doctor.html" 
+               class="bg-purple-600 text-white p-6 rounded-lg shadow-md hover:bg-purple-700 text-center">
+                <div class="text-4xl mb-2">👨‍⚕️</div>
+                <h3 class="text-xl font-semibold">Manage Doctors</h3>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/index.html';
+        }
+
+        async function loadDashboardData() {
+            const token = localStorage.getItem('auth_token');
+            const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+
+            if (!token || user.role !== 'ADMIN') {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            try {
+                // Load doctors
+                const doctorsResponse = await fetch(`${API_BASE}/doctors/all`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!doctorsResponse.ok) {
+                    throw new Error(`Failed to load doctors: ${doctorsResponse.status}`);
+                }
+                
+                const doctors = await doctorsResponse.json();
+                document.getElementById('totalDoctors').textContent = doctors.length;
+
+                // Load appointments
+                const appointmentsResponse = await fetch(`${API_BASE}/appointments/all`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!appointmentsResponse.ok) {
+                    console.error('Failed to load appointments:', appointmentsResponse.status);
+                    // Don't throw - just set to 0
+                    document.getElementById('totalAppointments').textContent = '0';
+                    document.getElementById('todayAppointments').textContent = '0';
+                    document.getElementById('pendingAppointments').textContent = '0';
+                    displayRecentAppointments([]);
+                    return;
+                }
+                
+                const appointments = await appointmentsResponse.json();
+                document.getElementById('totalAppointments').textContent = appointments.length;
+
+                // Today's appointments
+                const today = new Date().toISOString().split('T')[0];
+                const todayAppointments = appointments.filter(apt => {
+                    const aptDate = apt.start_at ? apt.start_at.split('T')[0] : apt.date;
+                    return aptDate === today;
+                });
+                document.getElementById('todayAppointments').textContent = todayAppointments.length;
+
+                // Pending appointments
+                const pending = appointments.filter(apt => apt.status === 'PENDING' || !apt.status);
+                document.getElementById('pendingAppointments').textContent = pending.length;
+
+                // Recent appointments (last 5)
+                const recent = appointments
+                    .sort((a, b) => {
+                        const dateA = new Date(a.start_at || a.date);
+                        const dateB = new Date(b.start_at || b.date);
+                        return dateB - dateA;
+                    })
+                    .slice(0, 5);
+
+                displayRecentAppointments(recent);
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                alert('Failed to load dashboard data. Please refresh the page.');
+            }
+        }
+
+        function displayRecentAppointments(appointments) {
+            const tbody = document.getElementById('recentAppointments');
+            
+            if (appointments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">No appointments yet</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = appointments.map(apt => {
+                // Handle both formats: start_at or date+time
+                let startDate;
+                if (apt.start_at) {
+                    startDate = new Date(apt.start_at);
+                } else if (apt.date && apt.time) {
+                    startDate = new Date(`${apt.date}T${apt.time}`);
+                } else {
+                    startDate = new Date();
+                }
+
+                return `
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${apt.patient?.name || 'N/A'}</div>
+                            <div class="text-sm text-gray-500">${apt.patient?.email || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${apt.doctor?.name || 'N/A'}</div>
+                            <div class="text-sm text-gray-500">${apt.doctor?.specialty || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">${startDate.toLocaleDateString()}</div>
+                            <div class="text-sm text-gray-500">${startDate.toLocaleTimeString('en-US', { 
+                                hour: '2-digit', minute: '2-digit' 
+                            })}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                apt.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                                apt.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${apt.status || 'PENDING'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+    </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Schedule - HealthCare+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="dashboard.html" class="text-2xl font-bold text-blue-600">HealthCare+ Admin</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                    <a href="add-doctor.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="bookings.html" class="text-gray-700 hover:text-blue-600">Bookings</a>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-4">
+            <a href="add-doctor.html" class="text-blue-600 hover:underline">← Back to Doctors</a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold" id="doctorAvatar"></div>
+                <div class="ml-4">
+                    <h1 class="text-2xl font-bold text-gray-900" id="doctorName"></h1>
+                    <p class="text-blue-600" id="doctorSpecialty"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-6">Add Weekly Schedule</h2>
+            <form id="scheduleForm" class="space-y-4">
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Day of Week *</label>
+                        <select id="weekday" required 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="0">Sunday</option>
+                            <option value="1">Monday</option>
+                            <option value="2">Tuesday</option>
+                            <option value="3">Wednesday</option>
+                            <option value="4">Thursday</option>
+                            <option value="5">Friday</option>
+                            <option value="6">Saturday</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Time *</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="startHour" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9" selected>9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                            <select id="startMinute" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="00" selected>00</option>
+                                <option value="15">15</option>
+                                <option value="30">30</option>
+                                <option value="45">45</option>
+                            </select>
+                            <select id="startAmPm" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="AM" selected>AM</option>
+                                <option value="PM">PM</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">End Time *</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <select id="endHour" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5" selected>5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                            <select id="endMinute" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="00" selected>00</option>
+                                <option value="15">15</option>
+                                <option value="30">30</option>
+                                <option value="45">45</option>
+                            </select>
+                            <select id="endAmPm" required 
+                                class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="AM">AM</option>
+                                <option value="PM" selected>PM</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scheduleMessage" class="hidden text-sm"></div>
+
+                <button type="submit" 
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
+                    Add Schedule
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold mb-6">Current Schedule</h2>
+            <div id="schedulesList" class="space-y-3"></div>
+            <div id="noSchedules" class="hidden text-center py-8 text-gray-500">
+                No schedules added yet
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <h3 class="text-2xl font-bold mb-4">Delete Schedule?</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete this schedule?</p>
+            <div class="flex space-x-4">
+                <button onclick="closeDeleteModal()" 
+                    class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 font-semibold">
+                    Cancel
+                </button>
+                <button onclick="confirmDelete()" 
+                    class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-semibold">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        const token = localStorage.getItem('auth_token');
+        const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+        
+        let currentDoctor = null;
+        let scheduleToDelete = null;
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '../index.html';
+        }
+
+        if (!token || user.role !== 'ADMIN') {
+            window.location.href = '../index.html';
+        }
+
+        async function loadDoctor() {
+            const params = new URLSearchParams(window.location.search);
+            const doctorId = params.get('id');
+
+            if (!doctorId) {
+                window.location.href = 'add-doctor.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load doctor');
+                }
+                
+                currentDoctor = await response.json();
+
+                document.getElementById('doctorAvatar').textContent = currentDoctor.name.charAt(0);
+                document.getElementById('doctorName').textContent = currentDoctor.name;
+                document.getElementById('doctorSpecialty').textContent = currentDoctor.specialty;
+
+                displaySchedules();
+            } catch (error) {
+                console.error('Error loading doctor:', error);
+                alert('Failed to load doctor details');
+            }
+        }
+
+        document.getElementById('scheduleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const scheduleMessage = document.getElementById('scheduleMessage');
+            scheduleMessage.classList.add('hidden');
+
+            const weekday = parseInt(document.getElementById('weekday').value);
+            
+            // Get 12-hour format values
+            const startHour12 = parseInt(document.getElementById('startHour').value);
+            const startMinute = document.getElementById('startMinute').value;
+            const startAmPm = document.getElementById('startAmPm').value;
+            
+            const endHour12 = parseInt(document.getElementById('endHour').value);
+            const endMinute = document.getElementById('endMinute').value;
+            const endAmPm = document.getElementById('endAmPm').value;
+            
+            // Convert to 24-hour format
+            let startHour24 = startHour12;
+            if (startAmPm === 'PM' && startHour12 !== 12) {
+                startHour24 = startHour12 + 12;
+            } else if (startAmPm === 'AM' && startHour12 === 12) {
+                startHour24 = 0;
+            }
+            
+            let endHour24 = endHour12;
+            if (endAmPm === 'PM' && endHour12 !== 12) {
+                endHour24 = endHour12 + 12;
+            } else if (endAmPm === 'AM' && endHour12 === 12) {
+                endHour24 = 0;
+            }
+            
+            const startTime = `${String(startHour24).padStart(2, '0')}:${startMinute}`;
+            const endTime = `${String(endHour24).padStart(2, '0')}:${endMinute}`;
+
+            try {
+                const response = await fetch(`${API_BASE}/doctors/${currentDoctor.id}/schedule`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        weekday: weekday,
+                        start_time: startTime,
+                        end_time: endTime
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to add schedule');
+                }
+
+                scheduleMessage.textContent = '✅ Schedule added successfully!';
+                scheduleMessage.className = 'text-green-600 text-sm font-semibold';
+                scheduleMessage.classList.remove('hidden');
+
+                await loadDoctor();
+            } catch (error) {
+                scheduleMessage.textContent = '❌ ' + (error.message || 'Failed to add schedule');
+                scheduleMessage.className = 'text-red-600 text-sm font-semibold';
+                scheduleMessage.classList.remove('hidden');
+            }
+        });
+
+        function displaySchedules() {
+            const list = document.getElementById('schedulesList');
+            const noSchedules = document.getElementById('noSchedules');
+
+            if (!currentDoctor.schedules || currentDoctor.schedules.length === 0) {
+                list.classList.add('hidden');
+                noSchedules.classList.remove('hidden');
+                return;
+            }
+
+            list.classList.remove('hidden');
+            noSchedules.classList.add('hidden');
+
+            const sortedSchedules = [...currentDoctor.schedules].sort((a, b) => a.weekday - b.weekday);
+
+            list.innerHTML = sortedSchedules.map(schedule => {
+                const startTime12 = convertTo12Hour(schedule.start_time);
+                const endTime12 = convertTo12Hour(schedule.end_time);
+                
+                return `
+                <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div class="flex-1">
+                        <span class="font-semibold text-gray-900">${dayNames[schedule.weekday]}</span>
+                        <span class="text-gray-600 ml-4">
+                            ${startTime12} - ${endTime12}
+                        </span>
+                    </div>
+                    <button onclick="deleteSchedule(${schedule.id})" 
+                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm">
+                        Delete
+                    </button>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function convertTo12Hour(time24) {
+            const [hours, minutes] = time24.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            hour = hour % 12 || 12;
+            return `${hour}:${minutes} ${ampm}`;
+        }
+
+        function deleteSchedule(id) {
+            scheduleToDelete = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            scheduleToDelete = null;
+        }
+
+        async function confirmDelete() {
+            try {
+                const response = await fetch(`${API_BASE}/doctors/schedules/${scheduleToDelete}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Delete failed');
+
+                closeDeleteModal();
+                await loadDoctor();
+            } catch (error) {
+                alert('Failed to delete schedule');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDoctor);
+    </script>
+</body>
+</html>

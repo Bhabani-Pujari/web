@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Appointments - HealthCare+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="/appointments.html" class="text-gray-700 hover:text-blue-600 font-semibold">My Appointments</a>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">My Appointments</h1>
+                <p class="text-gray-600 mt-2">Manage your upcoming and past appointments</p>
+            </div>
+            <a href="/doctors.html" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
+                Book New Appointment
+            </a>
+        </div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8">
+                    <button onclick="filterAppointments('upcoming')" id="upcomingTab" 
+                        class="py-4 px-1 border-b-2 border-blue-600 font-medium text-blue-600">
+                        Upcoming
+                    </button>
+                    <button onclick="filterAppointments('past')" id="pastTab" 
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Past
+                    </button>
+                    <button onclick="filterAppointments('cancelled')" id="cancelledTab" 
+                        class="py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                        Cancelled
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Appointments List -->
+        <div id="appointmentsList" class="space-y-4"></div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="text-gray-600 mt-4">Loading appointments...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <div class="text-6xl mb-4">📅</div>
+            <p class="text-gray-600 text-lg mb-4">No appointments found</p>
+            <a href="/doctors.html" class="text-blue-600 hover:underline">Browse doctors to book an appointment</a>
+        </div>
+    </div>
+
+    <!-- Cancel Confirmation Modal -->
+    <div id="cancelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full">
+            <h3 class="text-2xl font-bold mb-4">Cancel Appointment?</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+            <div class="flex space-x-4">
+                <button onclick="closeCancelModal()" 
+                    class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 font-semibold">
+                    No, Keep It
+                </button>
+                <button onclick="confirmCancel()" 
+                    class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 font-semibold">
+                    Yes, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let allAppointments = [];
+        let currentFilter = 'upcoming';
+        let appointmentToCancel = null;
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/index.html';
+        }
+
+        async function loadAppointments() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/appointments/me`, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to load appointments: ${response.status}`);
+                }
+                
+                allAppointments = await response.json();
+                filterAppointments('upcoming');
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <p class="text-red-600">Failed to load appointments</p>
+                `;
+            }
+        }
+
+        function filterAppointments(filter) {
+            currentFilter = filter;
+            const now = new Date();
+
+            // Update tabs
+            ['upcomingTab', 'pastTab', 'cancelledTab'].forEach(id => {
+                const tab = document.getElementById(id);
+                if (id === filter + 'Tab') {
+                    tab.className = 'py-4 px-1 border-b-2 border-blue-600 font-medium text-blue-600';
+                } else {
+                    tab.className = 'py-4 px-1 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300';
+                }
+            });
+
+            let filtered = [];
+            if (filter === 'upcoming') {
+                filtered = allAppointments.filter(apt => 
+                    new Date(apt.start_at) > now && apt.status !== 'CANCELLED'
+                );
+            } else if (filter === 'past') {
+                filtered = allAppointments.filter(apt => 
+                    new Date(apt.start_at) <= now && apt.status !== 'CANCELLED'
+                );
+            } else if (filter === 'cancelled') {
+                filtered = allAppointments.filter(apt => apt.status === 'CANCELLED');
+            }
+
+            displayAppointments(filtered);
+        }
+
+        function displayAppointments(appointments) {
+            const list = document.getElementById('appointmentsList');
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            
+            loadingState.classList.add('hidden');
+
+            if (appointments.length === 0) {
+                list.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            list.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            list.innerHTML = appointments.map(apt => {
+                const startDate = new Date(apt.start_at);
+                const endDate = new Date(apt.end_at);
+                const isPast = startDate < new Date();
+                const isCancelled = apt.status === 'CANCELLED';
+
+                return `
+                    <div class="bg-white rounded-lg shadow-md p-6 ${isCancelled ? 'opacity-60' : ''}">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                                        ${apt.doctor?.name?.charAt(0) || 'D'}
+                                    </div>
+                                    <div class="ml-4">
+                                        <h3 class="text-xl font-semibold text-gray-900">${apt.doctor?.name || 'Doctor'}</h3>
+                                        <p class="text-blue-600">${apt.doctor?.specialty || ''}</p>
+                                    </div>
+                                </div>
+                                <div class="ml-16 space-y-1 text-gray-600">
+                                    <p><span class="font-semibold">Date:</span> ${startDate.toLocaleDateString('en-US', { 
+                                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                                    })}</p>
+                                    <p><span class="font-semibold">Time:</span> ${startDate.toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', minute: '2-digit' 
+                                    })} - ${endDate.toLocaleTimeString('en-US', { 
+                                        hour: '2-digit', minute: '2-digit' 
+                                    })}</p>
+                                    <p><span class="font-semibold">Status:</span> 
+                                        <span class="px-2 py-1 rounded text-sm ${
+                                            isCancelled ? 'bg-red-100 text-red-800' :
+                                            apt.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                                            'bg-yellow-100 text-yellow-800'
+                                        }">
+                                            ${apt.status}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            ${!isPast && !isCancelled ? `
+                                <button onclick="cancelAppointment(${apt.id})" 
+                                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-semibold">
+                                    Cancel
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function cancelAppointment(id) {
+            appointmentToCancel = id;
+            document.getElementById('cancelModal').classList.remove('hidden');
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelModal').classList.add('hidden');
+            appointmentToCancel = null;
+        }
+
+        async function confirmCancel() {
+            const token = localStorage.getItem('auth_token');
+
+            try {
+                const response = await fetch(`${API_BASE}/appointments/${appointmentToCancel}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to cancel');
+
+                // Mark as cancelled in local data
+                const appointment = allAppointments.find(apt => apt.id === appointmentToCancel);
+                if (appointment) {
+                    appointment.status = 'CANCELLED';
+                }
+
+                alert('Appointment cancelled successfully');
+                closeCancelModal();
+                
+                // Reload to show updated data
+                await loadAppointments();
+                
+                // Switch to cancelled tab to show it
+                filterAppointments('cancelled');
+            } catch (error) {
+                console.error('Error cancelling appointment:', error);
+                alert('Failed to cancel appointment');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAppointments);
+    </script>
+</body>
+</html>

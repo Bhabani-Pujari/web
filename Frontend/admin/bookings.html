@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Bookings - HealthCare+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/admin/dashboard.html" class="text-2xl font-bold text-blue-600">HealthCare+ Admin</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/admin/dashboard.html" class="text-gray-700 hover:text-blue-600">Dashboard</a>
+                    <a href="/admin/add-doctor.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="/admin/bookings.html" class="text-gray-700 hover:text-blue-600 font-semibold">Bookings</a>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">All Appointments</h1>
+                <p class="text-gray-600 mt-2">View and manage all bookings</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="switchView('calendar')" id="calendarBtn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold">
+                    Calendar View
+                </button>
+                <button onclick="switchView('list')" id="listBtn"
+                    class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold">
+                    List View
+                </button>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div id="calendarView" class="bg-white rounded-lg shadow-md p-6">
+            <div id="calendar"></div>
+        </div>
+
+        <!-- List View -->
+        <div id="listView" class="hidden">
+            <!-- Filters -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+                        <select id="statusFilter" onchange="filterAppointments()"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">All</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="CONFIRMED">Confirmed</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Doctor</label>
+                        <select id="doctorFilter" onchange="filterAppointments()"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Doctors</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search Patient</label>
+                        <input type="text" id="patientSearch" oninput="filterAppointments()"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="Search by patient name...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appointments Table -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Patient</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Doctor</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="appointmentsTable" class="bg-white divide-y divide-gray-200">
+                        <!-- Will be populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="text-gray-600 mt-4">Loading appointments...</p>
+        </div>
+    </div>
+
+    <!-- Appointment Detail Modal -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-lg p-8 max-w-lg w-full">
+            <h3 class="text-2xl font-bold mb-4">Appointment Details</h3>
+            <div id="appointmentDetails" class="space-y-3 text-gray-700"></div>
+            <button onclick="closeDetailModal()" 
+                class="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        const token = localStorage.getItem('auth_token');
+        const user = JSON.parse(localStorage.getItem('user_data') || '{}');
+        
+        let allAppointments = [];
+        let filteredAppointments = [];
+        let calendar;
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.href = '/index.html';
+        }
+
+        // Check admin access
+        if (!token || user.role !== 'ADMIN') {
+            window.location.href = '/index.html';
+        }
+
+        async function loadAppointments() {
+            try {
+                const [appointmentsRes, doctorsRes] = await Promise.all([
+                    fetch(`${API_BASE}/appointments/all`, {
+                        method: 'GET',
+                        headers: { 
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }),
+                    fetch(`${API_BASE}/doctors/all`, {
+                        method: 'GET',
+                        headers: { 
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                ]);
+
+                if (!appointmentsRes.ok || !doctorsRes.ok) {
+                    throw new Error('Failed to load data');
+                }
+
+                allAppointments = await appointmentsRes.json();
+                const doctors = await doctorsRes.json();
+
+                // Populate doctor filter
+                const doctorFilter = document.getElementById('doctorFilter');
+                doctors.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.name;
+                    doctorFilter.appendChild(option);
+                });
+
+                filteredAppointments = [...allAppointments];
+                initCalendar();
+                displayAppointmentsTable();
+                
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('calendarView').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading appointments:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <p class="text-red-600">Failed to load appointments</p>
+                `;
+            }
+        }
+
+        function initCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            
+            const events = allAppointments.map(apt => ({
+                id: apt.id,
+                title: `${apt.patient?.name || 'Patient'} - Dr. ${apt.doctor?.name || 'Doctor'}`,
+                start: apt.start_at,
+                end: apt.end_at,
+                backgroundColor: apt.status === 'CANCELLED' ? '#ef4444' : 
+                               apt.status === 'CONFIRMED' ? '#22c55e' : '#eab308',
+                extendedProps: apt
+            }));
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: events,
+                eventClick: function(info) {
+                    showAppointmentDetail(info.event.extendedProps);
+                },
+                height: 'auto'
+            });
+
+            calendar.render();
+        }
+
+        function switchView(view) {
+            const calendarView = document.getElementById('calendarView');
+            const listView = document.getElementById('listView');
+            const calendarBtn = document.getElementById('calendarBtn');
+            const listBtn = document.getElementById('listBtn');
+
+            if (view === 'calendar') {
+                calendarView.classList.remove('hidden');
+                listView.classList.add('hidden');
+                calendarBtn.className = 'bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold';
+                listBtn.className = 'bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold';
+                if (calendar) calendar.render();
+            } else {
+                calendarView.classList.add('hidden');
+                listView.classList.remove('hidden');
+                listBtn.className = 'bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-semibold';
+                calendarBtn.className = 'bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 font-semibold';
+            }
+        }
+
+        function filterAppointments() {
+            const status = document.getElementById('statusFilter').value;
+            const doctorId = document.getElementById('doctorFilter').value;
+            const patientSearch = document.getElementById('patientSearch').value.toLowerCase();
+
+            filteredAppointments = allAppointments.filter(apt => {
+                const matchesStatus = !status || apt.status === status;
+                const matchesDoctor = !doctorId || apt.doctor_id === parseInt(doctorId);
+                const matchesPatient = !patientSearch || 
+                    apt.patient?.name.toLowerCase().includes(patientSearch);
+                return matchesStatus && matchesDoctor && matchesPatient;
+            });
+
+            displayAppointmentsTable();
+        }
+
+        function displayAppointmentsTable() {
+            const tbody = document.getElementById('appointmentsTable');
+            
+            if (filteredAppointments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No appointments found</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredAppointments
+                .sort((a, b) => new Date(b.start_at) - new Date(a.start_at))
+                .map(apt => {
+                    const startDate = new Date(apt.start_at);
+                    return `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">#${apt.id}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${apt.patient?.name || 'N/A'}</div>
+                                <div class="text-sm text-gray-500">${apt.patient?.email || ''}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">${apt.doctor?.name || 'N/A'}</div>
+                                <div class="text-sm text-gray-500">${apt.doctor?.specialty || ''}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">${startDate.toLocaleDateString()}</div>
+                                <div class="text-sm text-gray-500">${startDate.toLocaleTimeString('en-US', { 
+                                    hour: '2-digit', minute: '2-digit' 
+                                })}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    apt.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                                    apt.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                }">
+                                    ${apt.status}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <button onclick='showAppointmentDetail(${JSON.stringify(apt).replace(/'/g, "&apos;")})' 
+                                    class="text-blue-600 hover:text-blue-900">View</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        function showAppointmentDetail(appointment) {
+            const details = document.getElementById('appointmentDetails');
+            const startDate = new Date(appointment.start_at);
+            const endDate = new Date(appointment.end_at);
+
+            details.innerHTML = `
+                <p><span class="font-semibold">Appointment ID:</span> #${appointment.id}</p>
+                <p><span class="font-semibold">Patient:</span> ${appointment.patient?.name || 'N/A'}</p>
+                <p><span class="font-semibold">Email:</span> ${appointment.patient?.email || 'N/A'}</p>
+                <p><span class="font-semibold">Doctor:</span> ${appointment.doctor?.name || 'N/A'}</p>
+                <p><span class="font-semibold">Specialty:</span> ${appointment.doctor?.specialty || 'N/A'}</p>
+                <p><span class="font-semibold">Date:</span> ${startDate.toLocaleDateString('en-US', { 
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+                })}</p>
+                <p><span class="font-semibold">Time:</span> ${startDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', minute: '2-digit' 
+                })} - ${endDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', minute: '2-digit' 
+                })}</p>
+                <p><span class="font-semibold">Status:</span> 
+                    <span class="px-2 py-1 rounded text-sm ${
+                        appointment.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                        appointment.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                    }">
+                        ${appointment.status}
+                    </span>
+                </p>
+            `;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAppointments);
+    </script>
+</body>
+</html> 

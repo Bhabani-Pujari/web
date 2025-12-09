@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Appointment System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">HealthCare+</h1>
+                </div>
+                <div class="flex items-center space-x-4" id="navButtons">
+                    <a href="login.html" class="text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="register.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+            <div class="text-center">
+                <h1 class="text-5xl font-bold mb-6">Book Your Doctor Appointment Online</h1>
+                <p class="text-xl mb-8">Find the best doctors and book appointments instantly</p>
+                <a href="/doctors.html" class="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 inline-block">
+                    Find Doctors
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <h2 class="text-3xl font-bold text-center mb-12">Why Choose Us</h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-4xl mb-4">🏥</div>
+                <h3 class="text-xl font-semibold mb-2">Expert Doctors</h3>
+                <p class="text-gray-600">Access to qualified and experienced healthcare professionals</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-4xl mb-4">📅</div>
+                <h3 class="text-xl font-semibold mb-2">Easy Booking</h3>
+                <p class="text-gray-600">Book appointments in just a few clicks</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="text-4xl mb-4">⏰</div>
+                <h3 class="text-xl font-semibold mb-2">Flexible Scheduling</h3>
+                <p class="text-gray-600">Choose time slots that work best for you</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="bg-blue-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div>
+                    <div class="text-4xl font-bold text-blue-600" id="doctorCount">0+</div>
+                    <div class="text-gray-600 mt-2">Expert Doctors</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-blue-600" id="appointmentCount">0+</div>
+                    <div class="text-gray-600 mt-2">Appointments Booked</div>
+                </div>
+                <div>
+                    <div class="text-4xl font-bold text-blue-600">24/7</div>
+                    <div class="text-gray-600 mt-2">Support Available</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <h2 class="text-3xl font-bold mb-4">Ready to Get Started?</h2>
+        <p class="text-gray-600 mb-8">Join thousands of patients who trust us with their healthcare</p>
+        <a href="/register.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 inline-block">
+            Register Now
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p>&copy; 2024 HealthCare+. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Load stats
+        async function loadStats() {
+            try {
+                const doctors = await fetch('http://localhost:8000/doctors/').then(r => r.json());
+                document.getElementById('doctorCount').textContent = doctors.length + '+';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Update nav based on auth
+        function updateNav() {
+            const token = localStorage.getItem('auth_token');
+            const user = localStorage.getItem('user_data') ? JSON.parse(localStorage.getItem('user_data')) : null;
+            
+            if (token && user) {
+                const navButtons = document.getElementById('navButtons');
+                navButtons.innerHTML = `
+                    <a href="/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="${user.role === 'ADMIN' ? '/admin/dashboard.html' : '/appointments.html'}" class="text-gray-700 hover:text-blue-600">
+                        ${user.role === 'ADMIN' ? 'Dashboard' : 'My Appointments'}
+                    </a>
+                    <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                        Logout
+                    </button>
+                `;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_data');
+            window.location.reload();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            updateNav();
+        });
+    </script>
+</body>
+</html>
