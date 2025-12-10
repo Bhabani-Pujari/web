@@ -15,8 +15,8 @@
                     <h1 class="text-2xl font-bold text-blue-600">HealthCare+</h1>
                 </div>
                 <div class="flex items-center space-x-4" id="navButtons">
-                    <a href="login.html" class="text-gray-700 hover:text-blue-600">Login</a>
-                    <a href="register.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
+                    <a href="Frontend/login.html" class="text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="Frontend/register.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
                 </div>
             </div>
         </div>
@@ -28,7 +28,7 @@
             <div class="text-center">
                 <h1 class="text-5xl font-bold mb-6">Book Your Doctor Appointment Online</h1>
                 <p class="text-xl mb-8">Find the best doctors and book appointments instantly</p>
-                <a href="/doctors.html" class="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 inline-block">
+                <a href="Frontend/doctors.html" class="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-100 inline-block">
                     Find Doctors
                 </a>
             </div>
@@ -81,7 +81,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h2 class="text-3xl font-bold mb-4">Ready to Get Started?</h2>
         <p class="text-gray-600 mb-8">Join thousands of patients who trust us with their healthcare</p>
-        <a href="/register.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 inline-block">
+        <a href="Frontend/register.html" class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 inline-block">
             Register Now
         </a>
     </div>
@@ -112,8 +112,8 @@
             if (token && user) {
                 const navButtons = document.getElementById('navButtons');
                 navButtons.innerHTML = `
-                    <a href="/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
-                    <a href="${user.role === 'ADMIN' ? '/admin/dashboard.html' : '/appointments.html'}" class="text-gray-700 hover:text-blue-600">
+                    <a href="Frontend/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="${user.role === 'ADMIN' ? 'Frontend/admin/dashboard.html' : 'Frontend/appointments.html'}" class="text-gray-700 hover:text-blue-600">
                         ${user.role === 'ADMIN' ? 'Dashboard' : 'My Appointments'}
                     </a>
                     <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
