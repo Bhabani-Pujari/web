@@ -12,7 +12,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
+                    <a href="../index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
                 </div>
                 <div class="flex items-center space-x-4" id="navButtons"></div>
             </div>
@@ -64,11 +64,10 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8000';
         let allDoctors = [];
 
-        // Update navigation
         function updateNav() {
             const token = localStorage.getItem('auth_token');
             const user = localStorage.getItem('user_data') ? JSON.parse(localStorage.getItem('user_data')) : null;
@@ -96,10 +95,9 @@
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_data');
-            window.location.href = 'index.html';
+            window.location.href = '../index.html';
         }
 
-        // Load doctors
         async function loadDoctors() {
             try {
                 const response = await fetch(`${API_BASE}/doctors/`);
@@ -110,7 +108,6 @@
                 
                 allDoctors = await response.json();
                 
-                // Extract unique specialties
                 const specialties = [...new Set(allDoctors.map(d => d.specialty))];
                 const specialtyFilter = document.getElementById('specialtyFilter');
                 specialties.forEach(specialty => {
@@ -134,7 +131,6 @@
             }
         }
 
-        // Display doctors
         function displayDoctors(doctors) {
             const grid = document.getElementById('doctorsGrid');
             const loadingState = document.getElementById('loadingState');
@@ -179,7 +175,6 @@
             `).join('');
         }
 
-        // Filter doctors
         function filterDoctors() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const specialty = document.getElementById('specialtyFilter').value;
@@ -193,11 +188,9 @@
             displayDoctors(filtered);
         }
 
-        // Event listeners
         document.getElementById('searchInput').addEventListener('input', filterDoctors);
         document.getElementById('specialtyFilter').addEventListener('change', filterDoctors);
 
-        // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             updateNav();
             loadDoctors();
