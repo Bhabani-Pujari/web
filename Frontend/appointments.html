@@ -11,11 +11,11 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
+                    <a href="../index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
-                    <a href="/appointments.html" class="text-gray-700 hover:text-blue-600 font-semibold">My Appointments</a>
+                    <a href="doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="appointments.html" class="text-gray-700 hover:text-blue-600 font-semibold">My Appointments</a>
                     <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Logout</button>
                 </div>
             </div>
@@ -28,7 +28,7 @@
                 <h1 class="text-3xl font-bold text-gray-900">My Appointments</h1>
                 <p class="text-gray-600 mt-2">Manage your upcoming and past appointments</p>
             </div>
-            <a href="/doctors.html" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
+            <a href="doctors.html" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-semibold">
                 Book New Appointment
             </a>
         </div>
@@ -66,7 +66,7 @@
         <div id="emptyState" class="hidden text-center py-12">
             <div class="text-6xl mb-4">📅</div>
             <p class="text-gray-600 text-lg mb-4">No appointments found</p>
-            <a href="/doctors.html" class="text-blue-600 hover:underline">Browse doctors to book an appointment</a>
+            <a href="doctors.html" class="text-blue-600 hover:underline">Browse doctors to book an appointment</a>
         </div>
     </div>
 
@@ -88,8 +88,8 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8000';
         let allAppointments = [];
         let currentFilter = 'upcoming';
         let appointmentToCancel = null;
@@ -97,13 +97,13 @@
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_data');
-            window.location.href = '/index.html';
+            window.location.href = '../index.html';
         }
 
         async function loadAppointments() {
             const token = localStorage.getItem('auth_token');
             if (!token) {
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
                 return;
             }
 
@@ -134,7 +134,6 @@
             currentFilter = filter;
             const now = new Date();
 
-            // Update tabs
             ['upcomingTab', 'pastTab', 'cancelledTab'].forEach(id => {
                 const tab = document.getElementById(id);
                 if (id === filter + 'Tab') {
@@ -248,7 +247,6 @@
 
                 if (!response.ok) throw new Error('Failed to cancel');
 
-                // Mark as cancelled in local data
                 const appointment = allAppointments.find(apt => apt.id === appointmentToCancel);
                 if (appointment) {
                     appointment.status = 'CANCELLED';
@@ -257,10 +255,7 @@
                 alert('Appointment cancelled successfully');
                 closeCancelModal();
                 
-                // Reload to show updated data
                 await loadAppointments();
-                
-                // Switch to cancelled tab to show it
                 filterAppointments('cancelled');
             } catch (error) {
                 console.error('Error cancelling appointment:', error);
