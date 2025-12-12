@@ -2,9 +2,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from auth.schemas import RegisterRequest, LoginRequest
-from auth.utils import get_current_user, hash_password, verify_password  # ← ADD THESE
+from auth.utils import get_current_user
 from db import get_db
 from models import User, UserRole
+from passlib.context import CryptContext
 from jose import jwt
 import os
 from dotenv import load_dotenv
@@ -12,6 +13,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET", "fallback-secret-key")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -23,7 +25,9 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     
     role_enum = UserRole.ADMIN if request.role.upper() == "ADMIN" else UserRole.PATIENT
     
-    hashed_password = hash_password(request.password)  # ← FIXED
+    # TRUNCATE PASSWORD TO 72 BYTES
+    password_bytes = request.password.encode('utf-8')[:72]
+    hashed_password = pwd_context.hash(password_bytes)
     
     new_user = User(
         name=request.name,
@@ -50,7 +54,10 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
 def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form_data.username).first()
     
-    if not user or not verify_password(form_data.password, user.password_hash):  # ← FIXED
+    # TRUNCATE PASSWORD TO 72 BYTES
+    password_bytes = form_data.password.encode('utf-8')[:72]
+    
+    if not user or not pwd_context.verify(password_bytes, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = jwt.encode(
