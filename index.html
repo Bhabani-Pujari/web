@@ -94,10 +94,12 @@
     </footer>
 
     <script>
+        const API_BASE = 'https://web-1-nxcl.onrender.com';
+
         // Load stats
         async function loadStats() {
             try {
-                const doctors = await fetch('http://localhost:8000/doctors/').then(r => r.json());
+                const doctors = await fetch(`${API_BASE}/doctors/`).then(r => r.json());
                 document.getElementById('doctorCount').textContent = doctors.length + '+';
             } catch (error) {
                 console.error('Error loading stats:', error);
