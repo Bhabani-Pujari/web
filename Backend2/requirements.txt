@@ -7,4 +7,5 @@ passlib[argon2]
 python-multipart
 pydantic[email]
 email-validator
+psycopg2-binary
 argon2-cffi
