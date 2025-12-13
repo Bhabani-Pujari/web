@@ -11,7 +11,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
-                    <a href="/index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
+                    <a href="../index.html" class="text-2xl font-bold text-blue-600">HealthCare+</a>
                 </div>
                 <div class="flex items-center space-x-4" id="navButtons"></div>
             </div>
@@ -20,11 +20,10 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="mb-4">
-            <a href="/doctors.html" class="text-blue-600 hover:underline">← Back to Doctors</a>
+            <a href="doctors.html" class="text-blue-600 hover:underline">← Back to Doctors</a>
         </div>
 
         <div id="doctorProfile" class="grid lg:grid-cols-3 gap-8">
-            <!-- Doctor Info -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-md p-6 sticky top-8">
                     <div class="text-center mb-6">
@@ -45,30 +44,24 @@
                 </div>
             </div>
 
-            <!-- Booking Section -->
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-2xl font-bold mb-6">Book an Appointment</h2>
 
-                    <!-- Date Selection -->
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
                         <input type="date" id="dateInput" 
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                     </div>
 
-                    <!-- Available Slots -->
                     <div id="slotsSection">
                         <h3 class="text-lg font-semibold mb-4">Available Time Slots</h3>
-                        <div id="slotsGrid" class="grid grid-cols-3 md:grid-cols-4 gap-3">
-                            <!-- Slots will be loaded here -->
-                        </div>
+                        <div id="slotsGrid" class="grid grid-cols-3 md:grid-cols-4 gap-3"></div>
                         <div id="noSlotsMessage" class="hidden text-center py-8 text-gray-600">
                             No available slots for this date
                         </div>
                     </div>
 
-                    <!-- Loading State -->
                     <div id="loadingSlots" class="hidden text-center py-8">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                         <p class="text-gray-600 mt-2">Loading slots...</p>
@@ -78,7 +71,6 @@
         </div>
     </div>
 
-    <!-- Booking Confirmation Modal -->
     <div id="bookingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
         <div class="bg-white rounded-lg p-8 max-w-md w-full">
             <h3 class="text-2xl font-bold mb-4">Confirm Booking</h3>
@@ -100,8 +92,8 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
     <script>
-        const API_BASE = 'http://localhost:8000';
         let currentDoctor = null;
         let selectedSlot = null;
 
@@ -112,8 +104,8 @@
             
             if (token && user) {
                 navButtons.innerHTML = `
-                    <a href="/doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
-                    <a href="${user.role === 'ADMIN' ? '/admin/dashboard.html' : '/appointments.html'}" 
+                    <a href="doctors.html" class="text-gray-700 hover:text-blue-600">Doctors</a>
+                    <a href="${user.role === 'ADMIN' ? 'admin/dashboard.html' : 'appointments.html'}" 
                        class="text-gray-700 hover:text-blue-600">
                         ${user.role === 'ADMIN' ? 'Dashboard' : 'My Appointments'}
                     </a>
@@ -121,8 +113,8 @@
                 `;
             } else {
                 navButtons.innerHTML = `
-                    <a href="/login.html" class="text-gray-700 hover:text-blue-600">Login</a>
-                    <a href="/register.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
+                    <a href="login.html" class="text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="register.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Register</a>
                 `;
             }
         }
@@ -130,7 +122,7 @@
         function logout() {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_data');
-            window.location.href = '/index.html';
+            window.location.href = '../index.html';
         }
 
         async function loadDoctor() {
@@ -138,7 +130,7 @@
             const doctorId = params.get('id');
 
             if (!doctorId) {
-                window.location.href = '/doctors.html';
+                window.location.href = 'doctors.html';
                 return;
             }
 
@@ -149,10 +141,9 @@
                 document.getElementById('doctorAvatar').textContent = currentDoctor.name.charAt(0);
                 document.getElementById('doctorName').textContent = currentDoctor.name;
                 document.getElementById('doctorSpecialty').textContent = currentDoctor.specialty;
-                document.getElementById('doctorDuration').textContent = `${currentDoctor.duration_minutes} minutes`;
+                document.getElementById('doctorDuration').textContent = `${currentDoctor.duration_minutes || 30} minutes`;
                 document.getElementById('doctorBio').textContent = currentDoctor.bio || 'Experienced healthcare professional';
 
-                // Set min date to today
                 const today = new Date().toISOString().split('T')[0];
                 document.getElementById('dateInput').min = today;
                 document.getElementById('dateInput').value = today;
@@ -174,7 +165,6 @@
             document.getElementById('noSlotsMessage').classList.add('hidden');
 
             try {
-                // Get doctor's schedule for this day
                 const schedule = currentDoctor.schedules?.find(s => s.weekday === dayOfWeek);
 
                 if (!schedule) {
@@ -183,7 +173,6 @@
                     return;
                 }
 
-                // Get existing appointments
                 const token = localStorage.getItem('auth_token');
                 const appointmentsResponse = await fetch(
                     `${API_BASE}/appointments/doctor/${currentDoctor.id}`,
@@ -191,14 +180,12 @@
                 );
                 const appointments = await appointmentsResponse.json();
 
-                // Generate time slots
                 const slots = generateTimeSlots(
                     schedule.start_time,
                     schedule.end_time,
-                    currentDoctor.duration_minutes
+                    currentDoctor.duration_minutes || 30
                 );
 
-                // Filter out booked slots
                 const bookedSlots = appointments
                     .filter(apt => apt.start_at.startsWith(dateInput.value))
                     .map(apt => new Date(apt.start_at).toTimeString().slice(0, 5));
@@ -234,7 +221,6 @@
         function displaySlots(slots, date) {
             const grid = document.getElementById('slotsGrid');
             grid.innerHTML = slots.map(slot => {
-                // Convert 24hr to 12hr format
                 const [hours, minutes] = slot.split(':');
                 let hour = parseInt(hours);
                 const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -254,13 +240,12 @@
             const token = localStorage.getItem('auth_token');
             if (!token) {
                 alert('Please login to book an appointment');
-                window.location.href = '/login.html';
+                window.location.href = 'login.html';
                 return;
             }
 
             selectedSlot = { time, date };
             
-            // Format display time
             const [hours, minutes] = time.split(':');
             let hour = parseInt(hours);
             const ampm = hour >= 12 ? 'PM' : 'AM';
@@ -282,7 +267,6 @@
             const token = localStorage.getItem('auth_token');
             const confirmBtn = document.getElementById('confirmBtn');
             
-            // Disable button and show loading
             confirmBtn.disabled = true;
             confirmBtn.textContent = 'Booking...';
 
@@ -295,8 +279,8 @@
                     },
                     body: JSON.stringify({
                         doctor_id: currentDoctor.id,
-                        date: selectedSlot.date,      // ✅ Fixed: separate date field
-                        time: selectedSlot.time       // ✅ Fixed: separate time field
+                        date: selectedSlot.date,
+                        time: selectedSlot.time
                     })
                 });
 
@@ -307,12 +291,11 @@
                 }
 
                 alert('Appointment booked successfully!');
-                window.location.href = '/appointments.html';
+                window.location.href = 'appointments.html';
             } catch (error) {
                 console.error('Error booking appointment:', error);
                 alert(`Failed to book appointment: ${error.message}`);
                 
-                // Re-enable button
                 confirmBtn.disabled = false;
                 confirmBtn.textContent = 'Confirm';
             }
