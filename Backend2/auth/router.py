@@ -26,8 +26,11 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     role_enum = UserRole.ADMIN if request.role.upper() == "ADMIN" else UserRole.PATIENT
     
     # TRUNCATE PASSWORD TO 72 BYTES
-    password_bytes = request.password.encode('utf-8')[:72]
-    hashed_password = pwd_context.hash(password_bytes)
+    # password_bytes = request.password.encode('utf-8')[:72]
+    # hashed_password = pwd_context.hash(password_bytes)
+    
+    password_truncated = request.password[:72]  # String slicing, not bytes
+    hashed_password = pwd_context.hash(password_truncated)
     
     new_user = User(
         name=request.name,
@@ -55,9 +58,13 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     user = db.query(User).filter(User.email == form_data.username).first()
     
     # TRUNCATE PASSWORD TO 72 BYTES
-    password_bytes = form_data.password.encode('utf-8')[:72]
+    # password_bytes = form_data.password.encode('utf-8')[:72]
     
-    if not user or not pwd_context.verify(password_bytes, user.password_hash):
+    # if not user or not pwd_context.verify(password_bytes, user.password_hash):
+        
+    password_truncated = form_data.password[:72]  # String slicing
+    
+    if not user or not pwd_context.verify(password_truncated, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = jwt.encode(
