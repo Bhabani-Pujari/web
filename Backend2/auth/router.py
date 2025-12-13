@@ -13,7 +13,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET", "fallback-secret-key")
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -28,6 +28,8 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
     # TRUNCATE PASSWORD TO 72 BYTES
     # password_bytes = request.password.encode('utf-8')[:72]
     # hashed_password = pwd_context.hash(password_bytes)
+    
+    
     
     password_truncated = request.password[:72]  # String slicing, not bytes
     hashed_password = pwd_context.hash(password_truncated)
