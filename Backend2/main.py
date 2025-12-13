@@ -46,14 +46,22 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # ------------------------------
 # Enable CORS
 # ------------------------------
+# ------------------------------
+# Enable CORS
+# ------------------------------
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "https://bhabani-pujari.github.io",
+        "https://chic-flan-9b84dd.netlify.app",  # ← ADD YOUR NETLIFY URL
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # ------------------------------
 # Include Routers
 # ------------------------------
